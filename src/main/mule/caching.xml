@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="30bf5206-2b8e-499d-8fe2-f110b6dd2d7a" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<ee:object-store-caching-strategy name="Caching_Strategy" doc:name="Caching Strategy" doc:id="d74ae8e5-7c1e-4411-9513-3a443795551e" keyGenerationExpression="#[payload.id]" />
+	<flow name="cachingFlow" doc:id="ed42aae2-0afc-45d3-8017-8288c672fcdc" >
+		<http:listener doc:name="Listener" doc:id="9e535174-cd15-45f9-9237-7e7676861f23" config-ref="HTTP_Listener_config" path="/cachedemo"/>
+		<logger level="INFO" doc:name="Logger" doc:id="f353aef8-64ea-4ded-9165-e465563ab760" />
+		<ee:cache doc:name="Cache" doc:id="154538e2-ce8d-460c-a12b-d95e3842f19a" cachingStrategy-ref="Caching_Strategy">
+			<logger level="INFO" doc:name="Logger" doc:id="0cdc54c5-6b6e-4185-bb31-78af98c53cf5" message="message received"/>
+			<ee:transform doc:name="Transform Message" doc:id="86059bc9-f37f-457b-b236-781fffdd9758" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"hello": if(payload.id as Number == 1) 'payload is 1' else 'payload is not 1'
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="Logger" doc:id="dd26aeac-7315-46e7-b26c-d9809723cc34" message="response sent"/>
+		</ee:cache>
+		<logger level="INFO" doc:name="Logger" doc:id="84cc10c0-ed06-4a4b-ae8e-6359b45970ca" />
+	</flow>
+</mule>
